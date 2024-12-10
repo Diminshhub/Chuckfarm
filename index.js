@@ -25,7 +25,7 @@ function createBot() {
   const bot = mineflayer.createBot({
     host: 'mc1501586.fmcs.cloud',
     version: false,
-    username: 'Inscrevase',
+    username: 'Bruxinho',
     port: 48433,
     plugins: [AutoAuth],
     AutoAuth: 'bot112022'
