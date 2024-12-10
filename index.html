@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Controller</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    .status { margin: 20px 0; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>Controle do Bot</h1>
+  <div class="status">Status do Bot: <span id="status">Carregando...</span></div>
+  <button onclick="sendCommand('farm')">Ativar Farm</button>
+  <button onclick="sendCommand('stop farm')">Parar Farm</button>
+  <button onclick="sendCommand('stop')">Parar Todas Ações</button>
+
+  <script>
+    async function sendCommand(command) {
+      try {
+        const response = await fetch('/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command })
+        });
+        const result = await response.text();
+        alert(result);
+      } catch (error) {
+        alert('Erro ao enviar comando: ' + error.message);
+      }
+    }
+
+    // Atualizar o status do bot
+    async function updateStatus() {
+      const response = await fetch('/status');
+      const status = await response.text();
+      document.getElementById('status').innerText = status;
+    }
+    updateStatus();
+    setInterval(updateStatus, 5000); // Atualiza o status a cada 5 segundos
+  </script>
+</body>
+</html>
