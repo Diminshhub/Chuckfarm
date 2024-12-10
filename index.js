@@ -36,18 +36,6 @@ function createBot() {
   bot.loadPlugin(pathfinder);
 
   let guardPos = null;
-  let isFarming = false;
-  let farmInterval = null;
-
-  // Função de logs de ping
-  function logPing() {
-    console.clear();
-    console.log(`Ping do servidor: ${bot.player.ping}ms`);
-    console.log(`Ping do bot: ${bot.entity.ping}ms`);
-  }
-
-  // Logs de ping a cada 5 segundos
-  setInterval(logPing, 5000);
 
   // Funções de guarda
   function guardArea(pos) {
@@ -55,39 +43,20 @@ function createBot() {
     if (!bot.pvp.target) {
       moveToGuardPos();
     }
-    bot.chat("Estou protegendo a área!");
+    console.log("[LOG] Bot está protegendo a área!");
   }
 
   function stopGuarding() {
     guardPos = null;
     bot.pvp.stop();
     bot.pathfinder.setGoal(null);
-    bot.chat("Parei de guardar a área.");
+    console.log("[LOG] Bot parou de guardar a área.");
   }
 
   function moveToGuardPos() {
     const mcData = require("minecraft-data")(bot.version);
     bot.pathfinder.setMovements(new Movements(bot, mcData));
     bot.pathfinder.setGoal(new goals.GoalBlock(guardPos.x, guardPos.y, guardPos.z));
-  }
-
-  // Modo Farm
-  function startFarming() {
-    if (isFarming) return;
-    isFarming = true;
-    bot.chat("Modo farm ativado! Ficarei pulando no lugar.");
-    farmInterval = setInterval(() => {
-      bot.setControlState("jump", true);
-      setTimeout(() => bot.setControlState("jump", false), 200);
-    }, 1000);
-  }
-
-  function stopFarming() {
-    if (!isFarming) return;
-    isFarming = false;
-    clearInterval(farmInterval);
-    farmInterval = null;
-    bot.chat("Modo farm desativado!");
   }
 
   bot.on("physicTick", () => {
@@ -100,7 +69,7 @@ function createBot() {
       (e) => e.type === "mob" && bot.entity.position.distanceTo(e.position) <= 96
     );
     if (mob) {
-      bot.chat("Hostil detectado! Atacando.");
+      console.log("[LOG] Hostil detectado! Atacando.");
       bot.pvp.attack(mob);
     }
   });
@@ -108,19 +77,26 @@ function createBot() {
   // Seguir jogador
   function followPlayer(player) {
     if (!player || !player.entity) {
-      bot.chat("Não consigo encontrar você para seguir.");
+      console.log("[LOG] Não foi possível encontrar o jogador para seguir.");
       return;
     }
     const mcData = require("minecraft-data")(bot.version);
     bot.pathfinder.setMovements(new Movements(bot, mcData));
     bot.pathfinder.setGoal(new goals.GoalFollow(player.entity, 2), true);
-    bot.chat(`Seguindo o jogador ${player.username}.`);
+    console.log(`[LOG] Seguindo o jogador ${player.username}.`);
   }
 
   function stopFollowing() {
     bot.pathfinder.setGoal(null);
-    bot.chat("Parei de seguir.");
+    console.log("[LOG] Bot parou de seguir o jogador.");
   }
+
+  // Registrar ping nas logs
+  setInterval(() => {
+    const botPing = bot.player ? bot.player.ping : "Desconectado";
+    const serverPing = bot.server ? bot.server.latency : "N/A";
+    console.log(`[PING] Bot: ${botPing}ms | Servidor: ${serverPing}ms`);
+  }, 5000); // Atualiza a cada 5 segundos
 
   // Comandos via chat
   bot.on("chat", (username, message) => {
@@ -135,7 +111,6 @@ function createBot() {
     if (message === "stop") {
       stopGuarding();
       stopFollowing();
-      stopFarming();
     }
 
     if (message === "follow") {
@@ -144,14 +119,6 @@ function createBot() {
 
     if (message === "stop follow") {
       stopFollowing();
-    }
-
-    if (message === "farm") {
-      startFarming();
-    }
-
-    if (message === "stop farm") {
-      stopFarming();
     }
   });
 
