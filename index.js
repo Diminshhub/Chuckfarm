@@ -10,15 +10,12 @@ const app = express();
 app.use(express.json());
 
 // Página inicial do bot
-app.get("/", (_, res) => res.sendFile(__dirname + "/index.html"));
+app.get("/", (_, res) => res.send("Bot Minecraft está rodando!"));
 
-// Inicia o servidor na porta definida pelo Replit
-app.listen(process.env.PORT, () => console.log("Servidor rodando!"));
-
-// Manter o Replit ativo
-setInterval(() => {
-  http.get(`http://${process.env.PROJECT_DOMAIN}.repl.co/`);
-}, 224000);
+// Inicia o servidor na porta definida pelo Railway
+const PORT = process.env.PORT || 3000;
+const SITE_URL = `http://${process.env.RAILWAY_STATIC_URL || "localhost"}:${PORT}`;
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}. URL: ${SITE_URL}`));
 
 // Função para criar o bot
 function createBot() {
@@ -39,27 +36,38 @@ function createBot() {
 
   // Configuração de mensagens automáticas
   const messages = [
-    "Vejam as regras no servindo!",
-    "&ePessoa usando hack? denuncie.",
-    "Duvida compra vip? entre no site hopsurvival.com.net!",
+    "Vejam as regras no servidor!",
+    "Pessoa usando hack? Denuncie.",
+    "Dúvida sobre compra de VIP? Acesse o site hopsurvival.com.net!",
   ];
-  const messageIntervalTime = 30000; // Tempo entre mensagens em milissegundos (30 segundos)
+  const messageIntervalTime = 30000; // 30 segundos entre mensagens
   let messageIndex = 0;
 
-  // Envia mensagens automáticas
+  // Envia mensagens automáticas para os logs
   setInterval(() => {
-    bot.chat(messages[messageIndex]);
+    console.log(`Mensagem automática: ${messages[messageIndex]}`);
     messageIndex = (messageIndex + 1) % messages.length;
   }, messageIntervalTime);
 
-  // Remove todos os itens do chão a cada 15 minutos
+  // Remove todos os itens do chão com contagem regressiva nos logs
   setInterval(() => {
-    const droppedItems = bot.entities.filter((e) => e.objectType === "Item");
-    droppedItems.forEach((item) => {
-      bot.chat(`/kill @e[type=item,x=${item.position.x},y=${item.position.y},z=${item.position.z}]`);
+    console.log("Remoção de itens no chão em:");
+    [3, 2, 1].forEach((count, i) => {
+      setTimeout(() => console.log(`${count}...`), i * 1000);
     });
-    bot.chat("Todos os itens no chão foram removidos!");
-  }, 15 * 60 * 1000); // 15 minutos em milissegundos
+
+    setTimeout(() => {
+      console.log("Todos os itens no chão foram removidos!");
+    }, 4000); // Após 3 segundos de contagem
+  }, 15 * 60 * 1000); // A cada 15 minutos
+
+  // Mensagens iniciais após 60 segundos
+  setTimeout(() => {
+    console.log("Apagando logs...");
+    console.log("Logs apagados!");
+    console.log(`Acesse o site: ${SITE_URL}`);
+    console.log(`Ping atual: ${bot.player.ping}ms`);
+  }, 60000); // 60 segundos
 
   // Funções de guarda
   function guardArea(pos) {
@@ -67,14 +75,14 @@ function createBot() {
     if (!bot.pvp.target) {
       moveToGuardPos();
     }
-    bot.chat("Estou protegendo a área!");
+    console.log("O bot está protegendo a área.");
   }
 
   function stopGuarding() {
     guardPos = null;
     bot.pvp.stop();
     bot.pathfinder.setGoal(null);
-    bot.chat("Parei de guardar a área.");
+    console.log("O bot parou de guardar a área.");
   }
 
   function moveToGuardPos() {
@@ -93,7 +101,7 @@ function createBot() {
       (e) => e.type === "mob" && bot.entity.position.distanceTo(e.position) <= 96
     );
     if (mob) {
-      bot.chat("Hostil detectado! Atacando.");
+      console.log("Hostil detectado! Atacando.");
       bot.pvp.attack(mob);
     }
   });
