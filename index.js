@@ -39,9 +39,9 @@ function createBot() {
 
   // Configuração de mensagens automáticas
   const messages = [
-    "Estou aqui para ajudar!",
-    "Protegendo a área.",
-    "Jogadores, fiquem atentos!",
+    "Vejam as regras no servindo!",
+    "&ePessoa usando hack? denuncie.",
+    "Duvida compra vip? entre no site hopsurvival.com.net!",
   ];
   const messageIntervalTime = 30000; // Tempo entre mensagens em milissegundos (30 segundos)
   let messageIndex = 0;
