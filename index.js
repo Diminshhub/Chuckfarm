@@ -43,14 +43,14 @@ function createBot() {
     if (!bot.pvp.target) {
       moveToGuardPos();
     }
-    console.log("[LOG] Bot está protegendo a área!");
+    bot.chat("Estou protegendo a área!");
   }
 
   function stopGuarding() {
     guardPos = null;
     bot.pvp.stop();
     bot.pathfinder.setGoal(null);
-    console.log("[LOG] Bot parou de guardar a área.");
+    bot.chat("Parei de guardar a área.");
   }
 
   function moveToGuardPos() {
@@ -69,7 +69,7 @@ function createBot() {
       (e) => e.type === "mob" && bot.entity.position.distanceTo(e.position) <= 96
     );
     if (mob) {
-      console.log("[LOG] Hostil detectado! Atacando.");
+      bot.chat("Hostil detectado! Atacando.");
       bot.pvp.attack(mob);
     }
   });
@@ -77,26 +77,19 @@ function createBot() {
   // Seguir jogador
   function followPlayer(player) {
     if (!player || !player.entity) {
-      console.log("[LOG] Não foi possível encontrar o jogador para seguir.");
+      bot.chat("Não consigo encontrar você para seguir.");
       return;
     }
     const mcData = require("minecraft-data")(bot.version);
     bot.pathfinder.setMovements(new Movements(bot, mcData));
     bot.pathfinder.setGoal(new goals.GoalFollow(player.entity, 2), true);
-    console.log(`[LOG] Seguindo o jogador ${player.username}.`);
+    bot.chat(`Seguindo o jogador ${player.username}.`);
   }
 
   function stopFollowing() {
     bot.pathfinder.setGoal(null);
-    console.log("[LOG] Bot parou de seguir o jogador.");
+    bot.chat("Parei de seguir.");
   }
-
-  // Registrar ping nas logs
-  setInterval(() => {
-    const botPing = bot.player ? bot.player.ping : "Desconectado";
-    const serverPing = bot.server ? bot.server.latency : "N/A";
-    console.log(`[PING] Bot: ${botPing}ms | Servidor: ${serverPing}ms`);
-  }, 5000); // Atualiza a cada 5 segundos
 
   // Comandos via chat
   bot.on("chat", (username, message) => {
