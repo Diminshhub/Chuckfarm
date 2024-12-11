@@ -36,6 +36,33 @@ function createBot() {
   bot.loadPlugin(pathfinder);
 
   let guardPos = null;
+  let isFarming = false;
+  let farmInterval = null;
+  let messageInterval = null;
+
+  // Configuração de mensagens automáticas com cores
+  const messages = [
+    "§5Sou um bot staff! Posso ajudar no servidor!", // Roxo
+    "§4Cuidado! Estou monitorando jogadores suspeitos.", // Vermelho
+    "§1Vejam nosso Discord /desligado!", // Azul
+  ];
+  const messageIntervalTime = 30000; // Tempo entre mensagens em milissegundos (30 segundos)
+
+  function startMessages() {
+    if (messageInterval) return;
+    let index = 0;
+    messageInterval = setInterval(() => {
+      bot.chat(messages[index]);
+      index = (index + 1) % messages.length; // Alterna entre as mensagens
+    }, messageIntervalTime);
+  }
+
+  function stopMessages() {
+    if (messageInterval) {
+      clearInterval(messageInterval);
+      messageInterval = null;
+    }
+  }
 
   // Funções de guarda
   function guardArea(pos) {
@@ -69,15 +96,34 @@ function createBot() {
       (e) => e.type === "mob" && bot.entity.position.distanceTo(e.position) <= 96
     );
     if (mob) {
-      bot.chat("Hostil detectado! Atacando.");
+      bot.chat("§4Hostil detectado! Atacando.");
       bot.pvp.attack(mob);
     }
   });
 
+  // Modo Farm
+  function startFarming() {
+    if (isFarming) return;
+    isFarming = true;
+    bot.chat("§2Modo farm ativado! Ficarei pulando no lugar.");
+    farmInterval = setInterval(() => {
+      bot.setControlState("jump", true);
+      setTimeout(() => bot.setControlState("jump", false), 200);
+    }, 1000); // Pula a cada 1 segundo
+  }
+
+  function stopFarming() {
+    if (!isFarming) return;
+    isFarming = false;
+    clearInterval(farmInterval);
+    farmInterval = null;
+    bot.chat("Modo farm desativado!");
+  }
+
   // Seguir jogador
   function followPlayer(player) {
     if (!player || !player.entity) {
-      bot.chat("Não consigo encontrar você para seguir.");
+      bot.chat("§cNão consigo encontrar você para seguir.");
       return;
     }
     const mcData = require("minecraft-data")(bot.version);
@@ -89,6 +135,18 @@ function createBot() {
   function stopFollowing() {
     bot.pathfinder.setGoal(null);
     bot.chat("Parei de seguir.");
+  }
+
+  // Verificar "hack" (simulado)
+  function checkForHack(player) {
+    if (!player || !player.entity) {
+      bot.chat("§cJogador não encontrado para análise.");
+      return;
+    }
+    bot.chat(`Analisando ${player.username}...`);
+    setTimeout(() => {
+      bot.chat(`Nenhuma irregularidade encontrada em ${player.username}.`);
+    }, 5000); // Simula 5 segundos para análise
   }
 
   // Comandos via chat
@@ -103,7 +161,17 @@ function createBot() {
 
     if (message === "stop") {
       stopGuarding();
+      stopFarming();
+      stopMessages();
       stopFollowing();
+    }
+
+    if (message === "farm") {
+      startFarming();
+    }
+
+    if (message === "stop farm") {
+      stopFarming();
     }
 
     if (message === "follow") {
@@ -112,6 +180,20 @@ function createBot() {
 
     if (message === "stop follow") {
       stopFollowing();
+    }
+
+    if (message === "start messages") {
+      bot.chat("Mensagens automáticas ativadas.");
+      startMessages();
+    }
+
+    if (message === "stop messages") {
+      bot.chat("Mensagens automáticas desativadas.");
+      stopMessages();
+    }
+
+    if (message.startsWith("check")) {
+      checkForHack(player);
     }
   });
 
