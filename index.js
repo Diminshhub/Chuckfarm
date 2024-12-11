@@ -36,9 +36,6 @@ function createBot() {
   bot.loadPlugin(pathfinder);
 
   let guardPos = null;
-  let isFarming = false;
-  let farmInterval = null;
-  let messageInterval = null;
 
   // Configuração de mensagens automáticas
   const messages = [
@@ -47,22 +44,22 @@ function createBot() {
     "Jogadores, fiquem atentos!",
   ];
   const messageIntervalTime = 30000; // Tempo entre mensagens em milissegundos (30 segundos)
+  let messageIndex = 0;
 
-  function startMessages() {
-    if (messageInterval) return;
-    let index = 0;
-    messageInterval = setInterval(() => {
-      bot.chat(messages[index]);
-      index = (index + 1) % messages.length; // Alterna entre as mensagens
-    }, messageIntervalTime);
-  }
+  // Envia mensagens automáticas
+  setInterval(() => {
+    bot.chat(messages[messageIndex]);
+    messageIndex = (messageIndex + 1) % messages.length;
+  }, messageIntervalTime);
 
-  function stopMessages() {
-    if (messageInterval) {
-      clearInterval(messageInterval);
-      messageInterval = null;
-    }
-  }
+  // Remove todos os itens do chão a cada 15 minutos
+  setInterval(() => {
+    const droppedItems = bot.entities.filter((e) => e.objectType === "Item");
+    droppedItems.forEach((item) => {
+      bot.chat(`/kill @e[type=item,x=${item.position.x},y=${item.position.y},z=${item.position.z}]`);
+    });
+    bot.chat("Todos os itens no chão foram removidos!");
+  }, 15 * 60 * 1000); // 15 minutos em milissegundos
 
   // Funções de guarda
   function guardArea(pos) {
@@ -98,86 +95,6 @@ function createBot() {
     if (mob) {
       bot.chat("Hostil detectado! Atacando.");
       bot.pvp.attack(mob);
-    }
-  });
-
-  // Modo Farm
-  function startFarming() {
-    if (isFarming) return;
-    isFarming = true;
-    bot.chat("Modo farm ativado! Ficarei pulando no lugar.");
-    farmInterval = setInterval(() => {
-      bot.setControlState("jump", true);
-      setTimeout(() => bot.setControlState("jump", false), 200);
-    }, 1000); // Pula a cada 1 segundo
-  }
-
-  function stopFarming() {
-    if (!isFarming) return;
-    isFarming = false;
-    clearInterval(farmInterval);
-    farmInterval = null;
-    bot.chat("Modo farm desativado!");
-  }
-
-  // Seguir jogador
-  function followPlayer(player) {
-    if (!player || !player.entity) {
-      bot.chat("Não consigo encontrar você para seguir.");
-      return;
-    }
-    const mcData = require("minecraft-data")(bot.version);
-    bot.pathfinder.setMovements(new Movements(bot, mcData));
-    bot.pathfinder.setGoal(new goals.GoalFollow(player.entity, 2), true);
-    bot.chat(`Seguindo o jogador ${player.username}.`);
-  }
-
-  function stopFollowing() {
-    bot.pathfinder.setGoal(null);
-    bot.chat("Parei de seguir.");
-  }
-
-  // Comandos via chat
-  bot.on("chat", (username, message) => {
-    const player = bot.players[username];
-
-    if (message === "guard") {
-      if (player) {
-        guardArea(player.entity.position);
-      }
-    }
-
-    if (message === "stop") {
-      stopGuarding();
-      stopFarming();
-      stopMessages();
-      stopFollowing();
-    }
-
-    if (message === "farm") {
-      startFarming();
-    }
-
-    if (message === "stop farm") {
-      stopFarming();
-    }
-
-    if (message === "follow") {
-      followPlayer(player);
-    }
-
-    if (message === "stop follow") {
-      stopFollowing();
-    }
-
-    if (message === "start messages") {
-      bot.chat("Mensagens automáticas ativadas.");
-      startMessages();
-    }
-
-    if (message === "stop messages") {
-      bot.chat("Mensagens automáticas desativadas.");
-      stopMessages();
     }
   });
 
