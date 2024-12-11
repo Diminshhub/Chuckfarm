@@ -16,6 +16,8 @@ app.get("/", (_, res) => res.send("Bot Minecraft está rodando!"));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 
+console.log(`URL do site no Railway: http://${process.env.PROJECT_DOMAIN}.railway.app`);
+
 // Função para criar o bot
 function createBot() {
   const bot = mineflayer.createBot({
