@@ -22,10 +22,10 @@ app.listen(PORT, () => {
 // Função para criar o bot
 function createBot() {
   const bot = mineflayer.createBot({
-    host: "mc1501586.fmcs.cloud",
+    host: "Rucm.aternos.me",
     version: false,
     username: "Bruxinho",
-    port: 48433,
+    port: 58191,
     plugins: [AutoAuth],
     AutoAuth: "bot112022",
   });
